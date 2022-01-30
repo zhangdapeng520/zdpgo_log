@@ -64,3 +64,21 @@ func New(config ZapConfig) *Zap {
 
 	return &z
 }
+
+// NewDebug 创建debug环境下的日志
+func NewDebug() *Zap {
+	return New(ZapConfig{
+		Debug:        true,
+		OpenGlobal:   true,
+		OpenFileName: false,
+	})
+}
+
+// NewProduct 创建生产环境下的日志
+func NewProduct() *Zap {
+	return New(ZapConfig{
+		Debug:        false,
+		OpenGlobal:   true,
+		OpenFileName: true,
+	})
+}
