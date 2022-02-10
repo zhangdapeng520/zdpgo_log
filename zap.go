@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
+	"path"
 	"time"
 )
 
@@ -28,6 +29,15 @@ func New(config ZapConfig) *Zap {
 			return nil
 		}
 		config.LogFilePath = "logs/zdpgo/zdpgo_zap.log"
+	}else{
+		// 提取目录名
+		dirName := path.Dir(config.LogFilePath)
+
+		// 创建日志文件夹
+		err := createMultiDir(dirName)
+		if err != nil {
+			return nil
+		}
 	}
 
 	// 创建日志
@@ -101,7 +111,6 @@ func getEncoder(config ZapConfig) zapcore.Encoder {
 	customTimeEncoder := func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 	}
-	//encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	encoderConfig.EncodeTime = customTimeEncoder
 
 	//显示完整文件路径
