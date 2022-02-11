@@ -12,8 +12,8 @@ import (
 
 // Zap zap日志核心对象
 type Zap struct {
-	log    *zap.Logger        // 日志对象
-	sugar  *zap.SugaredLogger // sugar日志对象
+	Log    *zap.Logger        // 日志对象
+	Sugar  *zap.SugaredLogger // sugar日志对象
 	config *ZapConfig         // 配置对象
 }
 
@@ -29,7 +29,7 @@ func New(config ZapConfig) *Zap {
 			return nil
 		}
 		config.LogFilePath = "logs/zdpgo/zdpgo_zap.log"
-	}else{
+	} else {
 		// 提取目录名
 		dirName := path.Dir(config.LogFilePath)
 
@@ -55,17 +55,17 @@ func New(config ZapConfig) *Zap {
 	defer sugarLogger.Sync()
 
 	// sugar日志
-	z.log = logger
-	z.sugar = sugarLogger
+	z.Log = logger
+	z.Sugar = sugarLogger
 
 	// 全局日志
 	if config.OpenGlobal {
-		zap.ReplaceGlobals(z.log)
+		zap.ReplaceGlobals(z.Log)
 	}
 
 	// 输出文件名和行号
 	if config.OpenFileName {
-		z.log.WithOptions(zap.AddCaller())
+		z.Log.WithOptions(zap.AddCaller())
 	}
 
 	return &z
