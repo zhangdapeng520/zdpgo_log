@@ -52,11 +52,14 @@ func New(config ZapConfig) *Zap {
 	}
 	logger := zap.New(core, zap.AddCaller())
 	sugarLogger := logger.Sugar()
-	defer sugarLogger.Sync()
 
 	// sugar日志
 	z.Log = logger
 	z.Sugar = sugarLogger
+
+	// 记录日志
+	defer z.Log.Sync()
+	defer z.Sugar.Sync()
 
 	// 全局日志
 	if config.OpenGlobal {
