@@ -10,11 +10,29 @@ import (
 	"time"
 )
 
+// 全局日志
+var (
+	Debug   func(msg string, args ...interface{})
+	Info    func(msg string, args ...interface{})
+	Warning func(msg string, args ...interface{})
+	Error   func(msg string, args ...interface{})
+	Panic   func(msg string, args ...interface{})
+	Fatal   func(msg string, args ...interface{})
+)
+
 // Zap zap日志核心对象
 type Zap struct {
 	Log    *zap.Logger        // 日志对象
 	Sugar  *zap.SugaredLogger // sugar日志对象
 	config *ZapConfig         // 配置对象
+
+	// 日志方法
+	Debug   func(msg string, args ...interface{})
+	Info    func(msg string, args ...interface{})
+	Warning func(msg string, args ...interface{})
+	Error   func(msg string, args ...interface{})
+	Panic   func(msg string, args ...interface{})
+	Fatal   func(msg string, args ...interface{})
 }
 
 // New 创建zap实例
@@ -71,6 +89,21 @@ func New(config ZapConfig) *Zap {
 		z.Log.WithOptions(zap.AddCaller())
 	}
 
+	// 初始化日志方法
+	z.Debug = sugarLogger.Debugw
+	z.Info = sugarLogger.Infow
+	z.Warning = sugarLogger.Warnw
+	z.Error = sugarLogger.Errorw
+	z.Panic = sugarLogger.Panicw
+	z.Fatal = sugarLogger.Fatalw
+
+	// 初始化全局日志方法
+	Debug = sugarLogger.Debugw
+	Info = sugarLogger.Infow
+	Warning = sugarLogger.Warnw
+	Error = sugarLogger.Errorw
+	Panic = sugarLogger.Panicw
+	Fatal = sugarLogger.Fatalw
 	return &z
 }
 
