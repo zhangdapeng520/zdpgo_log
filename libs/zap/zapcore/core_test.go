@@ -7,11 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/ztest"
-	. "github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/ztest"
+	. "github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 )
 
 func makeInt64Field(key string, val int) Field {

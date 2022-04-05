@@ -6,19 +6,20 @@ import (
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 )
 
-// An Option configures a Logger.
+// Option 配置日志对象
 type Option interface {
 	apply(*Logger)
 }
 
-// optionFunc wraps a func so it satisfies the Option interface.
+// optionFunc 包装一个func，使其满足Option接口。
 type optionFunc func(*Logger)
 
+// 给函数，添加一个方法
 func (f optionFunc) apply(log *Logger) {
 	f(log)
 }
 
-// WrapCore wraps or replaces the Logger's underlying zapcore.Core.
+// WrapCore 包装或替换Logger的底层zapcore.Core
 func WrapCore(f func(zapcore.Core) zapcore.Core) Option {
 	return optionFunc(func(log *Logger) {
 		log.core = f(log.core)

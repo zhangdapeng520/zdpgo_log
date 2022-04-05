@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// 测试日志级别字符串
 func TestLevelString(t *testing.T) {
+	// 表格驱动测试：参数、期望值
 	tests := map[Level]string{
 		DebugLevel:  "debug",
 		InfoLevel:   "info",
@@ -21,12 +23,17 @@ func TestLevelString(t *testing.T) {
 		Level(-42):  "Level(-42)",
 	}
 
+	// 遍历参数和期望值
 	for lvl, stringLevel := range tests {
-		assert.Equal(t, stringLevel, lvl.String(), "Unexpected lowercase level string.")
-		assert.Equal(t, strings.ToUpper(stringLevel), lvl.CapitalString(), "Unexpected all-caps level string.")
+		// 字符串表示符合期望
+		assert.Equal(t, stringLevel, lvl.String(), "意外的小写级别字符串。")
+
+		// 字符串大写表示符合期望
+		assert.Equal(t, strings.ToUpper(stringLevel), lvl.CapitalString(), "意外的全大写级别字符串。")
 	}
 }
 
+// 测试日志级别文本
 func TestLevelText(t *testing.T) {
 	tests := []struct {
 		text  string
@@ -34,28 +41,37 @@ func TestLevelText(t *testing.T) {
 	}{
 		{"debug", DebugLevel},
 		{"info", InfoLevel},
-		{"", InfoLevel}, // make the zero value useful
+		{"", InfoLevel}, // 默认的日志级别
 		{"warn", WarnLevel},
 		{"error", ErrorLevel},
 		{"dpanic", DPanicLevel},
 		{"panic", PanicLevel},
 		{"fatal", FatalLevel},
 	}
+	// 日志文本，日志级别
 	for _, tt := range tests {
 		if tt.text != "" {
+			// 日志级别
 			lvl := tt.level
+
+			// 序列化文本
 			marshaled, err := lvl.MarshalText()
-			assert.NoError(t, err, "Unexpected error marshaling level %v to text.", &lvl)
-			assert.Equal(t, tt.text, string(marshaled), "Marshaling level %v to text yielded unexpected result.", &lvl)
+
+			// 期望不报错
+			assert.NoError(t, err, "解析日志级别%v错误", &lvl)
+
+			// 期望相等
+			assert.Equal(t, tt.text, string(marshaled), "解析日志级别%v错误", &lvl)
 		}
 
 		var unmarshaled Level
 		err := unmarshaled.UnmarshalText([]byte(tt.text))
-		assert.NoError(t, err, `Unexpected error unmarshaling text %q to level.`, tt.text)
-		assert.Equal(t, tt.level, unmarshaled, `Text %q unmarshaled to an unexpected level.`, tt.text)
+		assert.NoError(t, err, `反向解析字符串%q错误`, tt.text)
+		assert.Equal(t, tt.level, unmarshaled, `反向解析字符串%q错误`, tt.text)
 	}
 }
 
+// 测试解析全大写级别
 func TestCapitalLevelsParse(t *testing.T) {
 	tests := []struct {
 		text  string
@@ -72,8 +88,8 @@ func TestCapitalLevelsParse(t *testing.T) {
 	for _, tt := range tests {
 		var unmarshaled Level
 		err := unmarshaled.UnmarshalText([]byte(tt.text))
-		assert.NoError(t, err, `Unexpected error unmarshaling text %q to level.`, tt.text)
-		assert.Equal(t, tt.level, unmarshaled, `Text %q unmarshaled to an unexpected level.`, tt.text)
+		assert.NoError(t, err, `反向解析字符串%q错误`, tt.text)
+		assert.Equal(t, tt.level, unmarshaled, `反向解析字符串%q错误`, tt.text)
 	}
 }
 

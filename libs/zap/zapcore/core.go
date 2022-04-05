@@ -1,26 +1,22 @@
 package zapcore
 
-// Core is a minimal, fast logger interface. It's designed for library authors
-// to wrap in a more user-friendly API.
+// Core 是一个最小的、快速的记录器接口。它是为库的作者设计的，以包装一个更友好的API。
 type Core interface {
 	LevelEnabler
 
-	// With adds structured context to the Core.
+	// With 向核心添加结构化上下文。
 	With([]Field) Core
-	// Check determines whether the supplied Entry should be logged (using the
-	// embedded LevelEnabler and possibly some extra logic). If the entry
-	// should be logged, the Core adds itself to the CheckedEntry and returns
-	// the result.
-	//
-	// Callers must use Check before calling Write.
+
+	// Check 决定是否应该记录所提供的条目(使用嵌入的LevelEnabler和一些额外的逻辑)。
+	// 如果该条目应该被记录，Core将自己添加到CheckedEntry并返回结果。
+	// 调用者必须在调用Write之前使用Check。
 	Check(Entry, *CheckedEntry) *CheckedEntry
-	// Write serializes the Entry and any Fields supplied at the log site and
-	// writes them to their destination.
-	//
-	// If called, Write should always log the Entry and Fields; it should not
-	// replicate the logic of Check.
+
+	// Write 序列化日志站点上提供的Entry和任何Fields，并将它们写到它们的目的地。
+	// 如果被调用，Write应该总是记录Entry和Fields;它不应该复制Check的逻辑。
 	Write(Entry, []Field) error
-	// Sync flushes buffered logs (if any).
+
+	// Sync 刷新缓冲的日志(如果有的话)。
 	Sync() error
 }
 
@@ -34,7 +30,7 @@ func (nopCore) Check(_ Entry, ce *CheckedEntry) *CheckedEntry { return ce }
 func (nopCore) Write(Entry, []Field) error                    { return nil }
 func (nopCore) Sync() error                                   { return nil }
 
-// NewCore creates a Core that writes logs to a WriteSyncer.
+// NewCore 创建一个写入日志到WriteSyncer的Core。
 func NewCore(enc Encoder, ws WriteSyncer, enab LevelEnabler) Core {
 	return &ioCore{
 		LevelEnabler: enab,

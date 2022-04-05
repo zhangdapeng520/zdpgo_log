@@ -57,11 +57,8 @@ func New(core zapcore.Core, options ...Option) *Logger {
 	return log.WithOptions(options...)
 }
 
-// NewNop returns a no-op Logger. It never writes out logs or internal errors,
-// and it never runs user-defined hooks.
-//
-// Using WithOptions to replace the Core or error output of a no-op Logger can
-// re-enable logging.
+// NewNop 返回一个无操作Logger。它从不写日志或内部错误，也从不运行用户定义的钩子。
+// 使用WithOptions替换无操作Logger的Core或错误输出可以重新启用日志记录。
 func NewNop() *Logger {
 	return &Logger{
 		core:        zapcore.NewNopCore(),
@@ -71,10 +68,8 @@ func NewNop() *Logger {
 	}
 }
 
-// NewProduction builds a sensible production Logger that writes InfoLevel and
-// above logs to standard error as JSON.
-//
-// It's a shortcut for NewProductionConfig().Build(...Option).
+// NewProduction 构建一个合理的生产日志程序，将info级别及以上级别的日志作为JSON写入标准错误。
+// 是NewProductionConfig().Build(...Option)的快捷方式
 func NewProduction(options ...Option) (*Logger, error) {
 	return NewProductionConfig().Build(options...)
 }

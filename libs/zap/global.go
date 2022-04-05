@@ -13,18 +13,16 @@ import (
 const (
 	_stdLogDefaultDepth      = 1
 	_loggerWriterDepth       = 2
-	_programmerErrorTemplate = "You've found a bug in zap! Please file a bug at " +
-		"https://github.com/uber-go/zap/issues/new and reference this error: %v"
+	_programmerErrorTemplate = "您发现了一个Bug，请到https://github.com/zhangdapeng520/zdpgo_log/issues/new提交该错误: %v"
 )
 
 var (
-	_globalMu sync.RWMutex
-	_globalL  = NewNop()
-	_globalS  = _globalL.Sugar()
+	_globalMu sync.RWMutex       // 全局的互斥锁
+	_globalL  = NewNop()         // 全局的Logger日志对象
+	_globalS  = _globalL.Sugar() // 全局的Sugar日志对象
 )
 
-// L returns the global Logger, which can be reconfigured with ReplaceGlobals.
-// It's safe for concurrent use.
+// L 返回使用ReplaceGlobals替换的全局Logger对象，是线程安全的
 func L() *Logger {
 	_globalMu.RLock()
 	l := _globalL
@@ -32,8 +30,7 @@ func L() *Logger {
 	return l
 }
 
-// S returns the global SugaredLogger, which can be reconfigured with
-// ReplaceGlobals. It's safe for concurrent use.
+// S 返回使用ReplaceGlobals替换的SugaredLogger对象，这是线程安全的
 func S() *SugaredLogger {
 	_globalMu.RLock()
 	s := _globalS
@@ -41,8 +38,7 @@ func S() *SugaredLogger {
 	return s
 }
 
-// ReplaceGlobals replaces the global Logger and SugaredLogger, and returns a
-// function to restore the original values. It's safe for concurrent use.
+// ReplaceGlobals 替换全局的Logger和SugaredLogger对象，返回一个函数，执行该函数会恢复之前的全局对象。这是线程安全的方法。
 func ReplaceGlobals(logger *Logger) func() {
 	_globalMu.Lock()
 	prev := _globalL
@@ -52,17 +48,14 @@ func ReplaceGlobals(logger *Logger) func() {
 	return func() { ReplaceGlobals(prev) }
 }
 
-// NewStdLog returns a *log.Logger which writes to the supplied zap Logger at
-// InfoLevel. To redirect the standard library's package-global logging
-// functions, use RedirectStdLog instead.
+// NewStdLog 返回一个*log.Logger对象，使用info级别的Logger
 func NewStdLog(l *Logger) *log.Logger {
 	logger := l.WithOptions(AddCallerSkip(_stdLogDefaultDepth + _loggerWriterDepth))
 	f := logger.Info
 	return log.New(&loggerWriter{f}, "" /* prefix */, 0 /* flags */)
 }
 
-// NewStdLogAt returns *log.Logger which writes to supplied zap logger at
-// required level.
+// NewStdLogAt 使用指定的日志界别创建日志对象
 func NewStdLogAt(l *Logger, level zapcore.Level) (*log.Logger, error) {
 	logger := l.WithOptions(AddCallerSkip(_stdLogDefaultDepth + _loggerWriterDepth))
 	logFunc, err := levelToFunc(logger, level)
@@ -72,13 +65,9 @@ func NewStdLogAt(l *Logger, level zapcore.Level) (*log.Logger, error) {
 	return log.New(&loggerWriter{logFunc}, "" /* prefix */, 0 /* flags */), nil
 }
 
-// RedirectStdLog redirects output from the standard library's package-global
-// logger to the supplied logger at InfoLevel. Since zap already handles caller
-// annotations, timestamps, etc., it automatically disables the standard
-// library's annotations and prefixing.
-//
-// It returns a function to restore the original prefix and flags and reset the
-// standard library's output to os.Stderr.
+// RedirectStdLog 将标准库的包全局记录器的输出重定向到info level提供的记录器。
+// 因为zap已经处理了调用者注解、时间戳等，所以它会自动禁用标准库的注解和前缀。
+// 它返回一个函数来恢复原来的前缀和标志，并将标准库的输出重置为os.Stderr。
 func RedirectStdLog(l *Logger) func() {
 	f, err := redirectStdLogAt(l, InfoLevel)
 	if err != nil {
@@ -89,13 +78,9 @@ func RedirectStdLog(l *Logger) func() {
 	return f
 }
 
-// RedirectStdLogAt redirects output from the standard library's package-global
-// logger to the supplied logger at the specified level. Since zap already
-// handles caller annotations, timestamps, etc., it automatically disables the
-// standard library's annotations and prefixing.
-//
-// It returns a function to restore the original prefix and flags and reset the
-// standard library's output to os.Stderr.
+// RedirectStdLogAt 将输出从标准库的包全局记录器重定向到指定级别上提供的记录器。
+// 因为zap已经处理了调用者注解、时间戳等，所以它会自动禁用标准库的注解和前缀。
+// 它返回一个函数来恢复原来的前缀和标志，并将标准库的输出重置为os.Stderr。
 func RedirectStdLogAt(l *Logger, level zapcore.Level) (func(), error) {
 	return redirectStdLogAt(l, level)
 }
