@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap"
 )
 
 // 使用简单

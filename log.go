@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/zhangdapeng520/zdpgo_log/libs/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap"
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 )
 
 // 全局日志
@@ -194,8 +194,8 @@ func NewDebug() *Log {
 // NewProduct 创建生产环境下的日志
 func NewProduct() *Log {
 	return New(Config{
-		Debug:        false,
-		OpenGlobal:   true,
+		Debug:      false,
+		OpenGlobal: true,
 		OpenFileName: true,
 		OpenJsonLog:  true,
 	})
