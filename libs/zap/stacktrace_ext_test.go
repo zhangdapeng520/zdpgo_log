@@ -3,6 +3,9 @@ package zap
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
@@ -11,11 +14,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // _zapPackages are packages that we search for in the logging output to match a
@@ -23,8 +21,8 @@ import (
 // intended to match on the function name, while this is on the full output
 // which includes filenames.
 var _zapPackages = []string{
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap.",
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore.",
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap",
+	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore",
 }
 
 func TestStacktraceFiltersZapLog(t *testing.T) {

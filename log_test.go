@@ -75,6 +75,6 @@ func TestLog_Backup(t *testing.T) {
 
 	for i := 0; i < 100000; i++ {
 		l.Info(s)
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(time.Millisecond * 100)
 	}
 }

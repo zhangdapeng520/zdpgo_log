@@ -3,7 +3,6 @@ package zdpgo_log
 import (
 	"fmt"
 	"os"
-	"path"
 	"time"
 
 	"github.com/zhangdapeng520/zdpgo_log/libs/lumberjack"
@@ -19,9 +18,12 @@ var (
 	Error   func(msg string, args ...interface{})
 	Panic   func(msg string, args ...interface{})
 	Fatal   func(msg string, args ...interface{})
+
+	// S 全局的日志对象
+	S = zap.S
 )
 
-// Zap zap日志核心对象
+// Log 日志核心对象
 type Log struct {
 	Log    *zap.Logger        // 日志对象
 	Sugar  *zap.SugaredLogger // sugar日志对象
@@ -38,26 +40,11 @@ type Log struct {
 
 // New 创建zap实例
 func New(config Config) *Log {
+	// 创建日志对象
 	z := Log{}
 
-	// 日志路径
-	if config.LogFilePath == "" {
-		// 创建日志文件夹
-		err := createMultiDir("logs/zdpgo")
-		if err != nil {
-			return nil
-		}
-		config.LogFilePath = "logs/zdpgo/zdpgo_log.log"
-	} else {
-		// 提取目录名
-		dirName := path.Dir(config.LogFilePath)
-
-		// 创建日志文件夹
-		err := createMultiDir(dirName)
-		if err != nil {
-			return nil
-		}
-	}
+	// 初始化配置
+	config = getDefaultConfig(config)
 	z.config = &config
 
 	// 创建日志
@@ -163,15 +150,7 @@ func getEncoder(config Config) zapcore.Encoder {
 // 获取日志写入对象
 func getLogWriter(config Config) zapcore.WriteSyncer {
 	// 处理配置
-	if config.MaxSize == 0 {
-		config.MaxSize = 33
-	}
-	if config.MaxBackups == 0 {
-		config.MaxBackups = 33
-	}
-	if config.MaxAge == 0 {
-		config.MaxAge = 33
-	}
+	config = getDefaultConfig(config)
 	lumberJackLogger := &lumberjack.Logger{
 		Filename:   config.LogFilePath,     // 日志输出文件
 		MaxSize:    int(config.MaxSize),    // 日志最大保存1M
@@ -194,8 +173,8 @@ func NewDebug() *Log {
 // NewProduct 创建生产环境下的日志
 func NewProduct() *Log {
 	return New(Config{
-		Debug:      false,
-		OpenGlobal: true,
+		Debug:        false,
+		OpenGlobal:   true,
 		OpenFileName: true,
 		OpenJsonLog:  true,
 	})
