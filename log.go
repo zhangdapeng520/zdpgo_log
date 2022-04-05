@@ -1,13 +1,14 @@
-package zdpgo_zap
+package zdpgo_log
 
 import (
 	"fmt"
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"os"
 	"path"
 	"time"
+
+	"github.com/zhangdapeng520/zdpgo_log/libs/lumberjack"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // 全局日志
@@ -21,10 +22,10 @@ var (
 )
 
 // Zap zap日志核心对象
-type Zap struct {
+type Log struct {
 	Log    *zap.Logger        // 日志对象
 	Sugar  *zap.SugaredLogger // sugar日志对象
-	config *ZapConfig         // 配置对象
+	config *Config            // 配置对象
 
 	// 日志方法
 	Debug   func(msg string, args ...interface{})
@@ -36,8 +37,8 @@ type Zap struct {
 }
 
 // New 创建zap实例
-func New(config ZapConfig) *Zap {
-	z := Zap{}
+func New(config Config) *Log {
+	z := Log{}
 
 	// 日志路径
 	if config.LogFilePath == "" {
@@ -46,7 +47,7 @@ func New(config ZapConfig) *Zap {
 		if err != nil {
 			return nil
 		}
-		config.LogFilePath = "logs/zdpgo/zdpgo_zap.log"
+		config.LogFilePath = "logs/zdpgo/zdpgo_log.log"
 	} else {
 		// 提取目录名
 		dirName := path.Dir(config.LogFilePath)
@@ -57,6 +58,7 @@ func New(config ZapConfig) *Zap {
 			return nil
 		}
 	}
+	z.config = &config
 
 	// 创建日志
 	writeSyncer := getLogWriter(config)
@@ -123,17 +125,11 @@ func createMultiDir(filePath string) error {
 // 判断所给路径文件/文件夹是否存在(返回true是存在)
 func isExist(path string) bool {
 	_, err := os.Stat(path) //os.Stat获取文件信息
-	if err != nil {
-		if os.IsExist(err) {
-			return true
-		}
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // 获取日志编码器
-func getEncoder(config ZapConfig) zapcore.Encoder {
+func getEncoder(config Config) zapcore.Encoder {
 	// 配置对象
 	var encoderConfig zapcore.EncoderConfig
 	if config.Debug {
@@ -165,7 +161,7 @@ func getEncoder(config ZapConfig) zapcore.Encoder {
 }
 
 // 获取日志写入对象
-func getLogWriter(config ZapConfig) zapcore.WriteSyncer {
+func getLogWriter(config Config) zapcore.WriteSyncer {
 	// 处理配置
 	if config.MaxSize == 0 {
 		config.MaxSize = 33
@@ -187,8 +183,8 @@ func getLogWriter(config ZapConfig) zapcore.WriteSyncer {
 }
 
 // NewDebug 创建debug环境下的日志
-func NewDebug() *Zap {
-	return New(ZapConfig{
+func NewDebug() *Log {
+	return New(Config{
 		Debug:        true,
 		OpenGlobal:   true,
 		OpenFileName: false,
@@ -196,8 +192,8 @@ func NewDebug() *Zap {
 }
 
 // NewProduct 创建生产环境下的日志
-func NewProduct() *Zap {
-	return New(ZapConfig{
+func NewProduct() *Log {
+	return New(Config{
 		Debug:        false,
 		OpenGlobal:   true,
 		OpenFileName: true,

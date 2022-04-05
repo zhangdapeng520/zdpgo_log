@@ -1,9 +1,9 @@
 package main
 
-import "github.com/zhangdapeng520/zdpgo_zap"
+import "github.com/zhangdapeng520/zdpgo_log"
 
 func main() {
-	l := zdpgo_zap.New(zdpgo_zap.ZapConfig{
+	l := zdpgo_log.New(zdpgo_log.Config{
 		Debug:        true,
 		OpenGlobal:   true,
 		OpenFileName: false,
