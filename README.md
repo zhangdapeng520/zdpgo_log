@@ -2,15 +2,7 @@
 
 基于zap二次封装的日志库
 
-## 功能
-
-- 持久化日志
-- json日志
-- 区分测试环境和生产环境
-- 全局日志
-- 日志备份
-
-## 版本日志
+## 版本历史
 
 - 版本0.1.0：2022年1月30日
 - 版本0.1.1：2022年1月30日
@@ -20,25 +12,20 @@
 - 版本0.2.3：2022年2月11日 bug修复
 - 版本1.0.0：2022年3月8日 优化日志方法
 - 版本1.0.1：2022年4月5日 优化代码结构
+- 版本1.0.2：2022年4月7日 移除没必要的第三方依赖
 
-## 常用方法
+## 使用案例
 
-- Info 记录info类型的日志
-- Debug 记录debug类型的日志
-- Warning 记录warning类型的日志
-- Error 记录error类型的日志
-- Panic 记录panic类型的日志
-- Fatal 记录fatal类型的日志
-
-## 快速入门
-
+### 基本使用
 ```go
 package main
 
-import "github.com/zhangdapeng520/zdpgo_zap"
+import (
+	"github.com/zhangdapeng520/zdpgo_log"
+)
 
 func main() {
-	l := zdpgo_zap.New(zdpgo_zap.ZapConfig{
+	l := zdpgo_log.New(zdpgo_log.Config{
 		Debug:        true,
 		OpenGlobal:   true,
 		OpenFileName: false,
@@ -47,25 +34,11 @@ func main() {
 	l.Info("info日志", "a", 111, "b", 22.22, "c", true, "d", "bbb")
 	l.Warning("warning日志", "a", 111, "b", 22.22, "c", true, "d", "bbb")
 	l.Error("error日志", "a", 111, "b", 22.22, "c", true, "d", "bbb")
-}
-```
 
-## 创建日志的便捷方式
-
-```go
-func TestZap_Debug(t *testing.T) {
-l := NewDebug()
-l.Debug("日志。。。")
-l.Info("日志。。。")
-l.Warning("日志。。。")
-l.Error("日志。。。")
-}
-
-func TestZap_Product(t *testing.T) {
-l := NewProduct()
-l.Debug("日志。。。")
-l.Info("日志。。。")
-l.Warning("日志。。。")
-l.Error("日志。。。")
+	// 全局日志
+	zdpgo_log.S().Debug("全局的debug日志全局的debug日志全局的debug日志全局的debug日志全局的debug日志全局的debug日志全局的debug日志全局的debug日志全局的debug日志。。。。")
+	zdpgo_log.S().Info("全局的info日志。。。。")
+	zdpgo_log.S().Warn("全局的warning日志。。。")
+	zdpgo_log.S().Error("全局的error日志。。。。")
 }
 ```
