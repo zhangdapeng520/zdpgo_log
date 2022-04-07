@@ -3,7 +3,7 @@ package ztest
 import (
 	"time"
 
-	"github.com/benbjohnson/clock"
+	"github.com/zhangdapeng520/zdpgo_log/libs/clock"
 )
 
 // MockClock provides control over the time.
