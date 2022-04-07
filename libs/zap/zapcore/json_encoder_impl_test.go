@@ -13,7 +13,7 @@ import (
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/bufferpool"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/multierr"
+	"github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 )
 
 var _defaultEncoderConfig = EncoderConfig{

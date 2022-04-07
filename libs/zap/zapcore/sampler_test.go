@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/atomic"
+	"github.com/zhangdapeng520/zdpgo_log/libs/atomic"
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/ztest"
 	. "github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zaptest/observer"

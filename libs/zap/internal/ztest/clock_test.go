@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/atomic"
+	"github.com/zhangdapeng520/zdpgo_log/libs/atomic"
 )
 
 func TestMockClock_NewTicker(t *testing.T) {

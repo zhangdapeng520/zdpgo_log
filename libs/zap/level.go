@@ -1,7 +1,7 @@
 package zap
 
 import (
-	"go.uber.org/atomic"
+	"github.com/zhangdapeng520/zdpgo_log/libs/atomic"
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 )
 

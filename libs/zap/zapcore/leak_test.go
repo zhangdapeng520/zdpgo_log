@@ -3,7 +3,7 @@ package zapcore
 import (
 	"testing"
 
-	"go.uber.org/goleak"
+	"github.com/zhangdapeng520/zdpgo_log/libs/goleak"
 )
 
 func TestMain(m *testing.M) {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 
-	"go.uber.org/multierr"
+	"github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 )
 
 // Open is a high-level wrapper that takes a variadic number of URLs, opens or

@@ -5,7 +5,7 @@ import (
 
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 
-	"go.uber.org/multierr"
+	"github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 )
 
 const (

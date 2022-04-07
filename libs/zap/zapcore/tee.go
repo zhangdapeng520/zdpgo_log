@@ -1,6 +1,6 @@
 package zapcore
 
-import "go.uber.org/multierr"
+import "github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 
 type multiCore []Core
 

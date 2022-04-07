@@ -10,7 +10,7 @@ import (
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/bufferpool"
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/exit"
 
-	"go.uber.org/multierr"
+	"github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 )
 
 var (

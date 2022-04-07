@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/multierr"
+	"github.com/zhangdapeng520/zdpgo_log/libs/multierr"
 )
 
 const (

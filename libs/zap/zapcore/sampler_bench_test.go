@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/atomic"
+	"github.com/zhangdapeng520/zdpgo_log/libs/atomic"
 	"github.com/zhangdapeng520/zdpgo_log/libs/zap/internal/ztest"
 	. "github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
 )

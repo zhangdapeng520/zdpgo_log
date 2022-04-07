@@ -3,7 +3,7 @@ package zapcore
 import (
 	"time"
 
-	"go.uber.org/atomic"
+	"github.com/zhangdapeng520/zdpgo_log/libs/atomic"
 )
 
 const (

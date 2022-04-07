@@ -1,9 +1,9 @@
 package: github.com/zhangdapeng520/zdpgo_log/libs/zap
 license: MIT
 import:
-- package: go.uber.org/atomic
+- package: github.com/zhangdapeng520/zdpgo_log/libs/atomic
   version: ^1
-- package: go.uber.org/multierr
+- package: github.com/zhangdapeng520/zdpgo_log/libs/multierr
   version: ^1
 testImport:
 - package: github.com/satori/go.uuid
