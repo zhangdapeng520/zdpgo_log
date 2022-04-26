@@ -7,11 +7,7 @@ import (
 )
 
 func prepareLog() *Log {
-	z := New(Config{
-		Debug:        true,
-		OpenGlobal:   true,
-		OpenFileName: true,
-	})
+	z := New()
 	return z
 }
 
@@ -22,25 +18,16 @@ func TestLog_New(t *testing.T) {
 
 // 测试debug环境日志
 func TestLog_Debug(t *testing.T) {
-	l := NewDebug()
+	l := prepareLog()
 	l.Debug("日志。。。")
 	l.Info("日志。。。")
 	l.Warning("日志。。。")
 	l.Error("日志。。。")
 }
 
-// 测试全局日志
-func TestLog_GlobalInfo(t *testing.T) {
-	prepareLog()
-	Info("这是一条info类型的日志", "a", 1, "b", 2.22, "c", "333", "d", true)
-	Debug("这是一条debug类型的日志", "a", 1, "b", 2.22, "c", "333", "d", true)
-	Warning("这是一条warning类型的日志", "a", 1, "b", 2.22, "c", "333", "d", true)
-	Error("这是一条error类型的日志", "a", 1, "b", 2.22, "c", "333", "d", true)
-}
-
 // 测试生产环境日志
 func TestLog_Product(t *testing.T) {
-	l := NewProduct()
+	l := prepareLog()
 	l.Debug("日志。。。")
 	l.Info("日志。。。")
 	l.Warning("日志。。。")
@@ -49,10 +36,7 @@ func TestLog_Product(t *testing.T) {
 
 // 测试json日志
 func TestLog_Json(t *testing.T) {
-	l := New(Config{
-		Debug:       true,
-		OpenJsonLog: true,
-	})
+	l := prepareLog()
 	l.Debug("日志。。。")
 	l.Info("日志。。。")
 	l.Warning("日志。。。")
@@ -61,11 +45,14 @@ func TestLog_Json(t *testing.T) {
 
 // 测试备份
 func TestLog_Backup(t *testing.T) {
-	l := New(Config{
-		Debug:       true,
-		OpenJsonLog: false,
-		MaxSize:     1,
-		MaxBackups:  3,
+	l := NewWithConfig(Config{
+		Debug:        false,
+		OpenJsonLog:  true,
+		OpenFileName: false,
+		MaxSize:      1,
+		MaxBackups:   3,
+		MaxAge:       3,
+		Compress:     false,
 	})
 
 	s := "测试日志备份 最多3个日志，最大1M"
@@ -73,7 +60,7 @@ func TestLog_Backup(t *testing.T) {
 		s += s
 	}
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000; i++ {
 		l.Info(s)
 		time.Sleep(time.Millisecond * 100)
 	}
