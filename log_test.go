@@ -18,11 +18,37 @@ func TestLog_New(t *testing.T) {
 
 // 测试debug环境日志
 func TestLog_Debug(t *testing.T) {
-	l := prepareLog()
-	l.Debug("日志。。。")
-	l.Info("日志。。。")
-	l.Warning("日志。。。")
-	l.Error("日志。。。")
+	// 默认不写入debug日志
+	l := New()
+	l.Debug("debug 111111日志。。。")
+
+	// 设置写入Debug日志
+	l = NewWithConfig(Config{
+		Debug:         true,
+		IsWriteDebug:  true,
+		OpenJsonLog:   true,
+		IsShowConsole: true,
+	})
+	l.Debug("debug 222222日志。。。")
+
+	// 设置写入Debug日志，但是不显示在控制台
+	l = NewWithConfig(Config{
+		Debug:         true,
+		IsWriteDebug:  true,
+		OpenJsonLog:   true,
+		IsShowConsole: false,
+	})
+	l.Debug("debug 3333333日志。。。")
+
+	// 设置写入Debug日志，但是显示在控制台，但是日志级别为Warning
+	l = NewWithConfig(Config{
+		Debug:         true,
+		IsWriteDebug:  true,
+		OpenJsonLog:   true,
+		IsShowConsole: true,
+		LogLevel:      "warning",
+	})
+	l.Debug("debug 4444444444日志。。。")
 }
 
 // 测试生产环境日志

@@ -3,6 +3,7 @@ package zdpgo_log
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/zhangdapeng520/zdpgo_log/libs/lumberjack"
@@ -12,9 +13,7 @@ import (
 
 // Log 日志核心对象
 type Log struct {
-	Log    *zap.Logger        // 日志对象
-	Sugar  *zap.SugaredLogger // sugar日志对象
-	config *Config            // 配置对象
+	config *Config // 配置对象
 
 	// 日志方法
 	Debug   func(msg string, args ...interface{})
@@ -39,34 +38,66 @@ func NewWithConfig(config Config) *Log {
 	config = getDefaultConfig(config)
 	z.config = &config
 
+	// 日志级别
+	var logLevel zapcore.Level
+	switch strings.ToUpper(config.LogLevel) {
+	case "DEBUG":
+		logLevel = zap.DebugLevel
+	case "INFO":
+		logLevel = zap.InfoLevel
+	case "WARNING":
+		logLevel = zap.WarnLevel
+	case "ERROR":
+		logLevel = zap.ErrorLevel
+	case "PANIC":
+		logLevel = zap.PanicLevel
+	default:
+		logLevel = zap.DebugLevel
+	}
+
 	// 创建日志
 	writeSyncer := getLogWriter(config)
 	encoder := getEncoder(config)
 	var core zapcore.Core
-	if config.Debug {
-		writerObj := zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout))
+
+	// DEBUG日志不要写入文件
+	var (
+		logger           *zap.Logger
+		sugarLogger      *zap.SugaredLogger
+		debugSugarLogger *zap.SugaredLogger
+	)
+
+	// 创建在控制台显示debug日志，但是不写入到文件中
+	if config.Debug && !config.IsWriteDebug {
+		writerObj := zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout))
 		core = zapcore.NewCore(encoder, writerObj, zapcore.DebugLevel)
-	} else {
-		core = zapcore.NewCore(encoder, writeSyncer, zapcore.InfoLevel)
+		debugSugarLogger = zap.New(core, zap.AddCaller()).Sugar()
+		z.Debug = debugSugarLogger.Debugw
 	}
-	logger := zap.New(core, zap.AddCaller())
-	sugarLogger := logger.Sugar()
 
-	// sugar日志
-	z.Log = logger
-	z.Sugar = sugarLogger
+	// 是否在控制台展示日志
+	if config.IsShowConsole {
+		writerObj := zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout))
+		core = zapcore.NewCore(encoder, writerObj, logLevel)
+	} else {
+		core = zapcore.NewCore(encoder, writeSyncer, logLevel)
+	}
 
-	// 记录日志
-	defer z.Log.Sync()
-	defer z.Sugar.Sync()
+	// 创建日志对象
+	logger = zap.New(core, zap.AddCaller())
+	sugarLogger = logger.Sugar()
+	defer logger.Sync()
+	defer sugarLogger.Sync()
+	if config.IsWriteDebug {
+		z.Debug = sugarLogger.Debugw
+	}
 
 	// 输出文件名和行号
 	if config.OpenFileName {
-		z.Log.WithOptions(zap.AddCaller())
+		logger.WithOptions(zap.AddCaller())
 	}
 
 	// 初始化日志方法
-	z.Debug = sugarLogger.Debugw
 	z.Info = sugarLogger.Infow
 	z.Warning = sugarLogger.Warnw
 	z.Error = sugarLogger.Errorw
