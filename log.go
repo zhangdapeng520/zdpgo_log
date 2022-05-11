@@ -69,8 +69,7 @@ func NewWithConfig(config Config) *Log {
 
 	// 创建在控制台显示debug日志，但是不写入到文件中
 	if config.Debug && !config.IsWriteDebug {
-		writerObj := zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout))
-		core = zapcore.NewCore(encoder, writerObj, zapcore.DebugLevel)
+		core = zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel)
 		debugSugarLogger = zap.New(core, zap.AddCaller()).Sugar()
 		z.Debug = debugSugarLogger.Debugw
 	}
@@ -88,7 +87,8 @@ func NewWithConfig(config Config) *Log {
 	sugarLogger = logger.Sugar()
 	defer logger.Sync()
 	defer sugarLogger.Sync()
-	if config.IsWriteDebug {
+
+	if z.Debug == nil {
 		z.Debug = sugarLogger.Debugw
 	}
 
