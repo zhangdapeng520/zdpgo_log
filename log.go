@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhangdapeng520/zdpgo_log/libs/lumberjack"
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap"
-	"github.com/zhangdapeng520/zdpgo_log/libs/zap/zapcore"
+	"github.com/zhangdapeng520/zdpgo_log/lumberjack"
+	"github.com/zhangdapeng520/zdpgo_log/zap"
+	"github.com/zhangdapeng520/zdpgo_log/zap/zapcore"
 )
 
 // Log 日志核心对象
