@@ -107,6 +107,20 @@ func NewWithConfig(config Config) *Log {
 	return &z
 }
 
+// NewWithDebug 根据debug值和日志路径创建日志对象
+func NewWithDebug(debug bool, logFilePath string) *Log {
+	logConfig := Config{
+		Debug:       debug,
+		OpenJsonLog: true,
+		LogFilePath: logFilePath,
+	}
+	if debug {
+		logConfig.IsShowConsole = true
+	}
+	log := NewWithConfig(logConfig)
+	return log
+}
+
 // 调用os.MkdirAll递归创建文件夹
 func createMultiDir(filePath string) error {
 	if !isExist(filePath) {
