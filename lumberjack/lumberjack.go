@@ -23,68 +23,17 @@ const (
 // ensure we always implement io.WriteCloser
 var _ io.WriteCloser = (*Logger)(nil)
 
-// Logger is an io.WriteCloser that writes to the specified filename.
-//
-// Logger opens or creates the logfile on first Write.  If the file exists and
-// is less than MaxSize megabytes, lumberjack will open and append to that file.
-// If the file exists and its size is >= MaxSize megabytes, the file is renamed
-// by putting the current time in a timestamp in the name immediately before the
-// file's extension (or the end of the filename if there's no extension). A new
-// log file is then created using original filename.
-//
-// Whenever a write would cause the current log file exceed MaxSize megabytes,
-// the current file is closed, renamed, and a new log file created with the
-// original name. Thus, the filename you give Logger is always the "current" log
-// file.
-//
-// Backups use the log file name given to Logger, in the form
-// `name-timestamp.ext` where name is the filename without the extension,
-// timestamp is the time at which the log was rotated formatted with the
-// time.Time format of `2006-01-02T15-04-05.000` and the extension is the
-// original extension.  For example, if your Logger.Filename is
-// `/var/log/foo/server.log`, a backup created at 6:30pm on Nov 11 2016 would
-// use the filename `/var/log/foo/server-2016-11-04T18-30-00.000.log`
-//
-// Cleaning Up Old Log Files
-//
-// Whenever a new logfile gets created, old log files may be deleted.  The most
-// recent files according to the encoded timestamp will be retained, up to a
-// number equal to MaxBackups (or all of them if MaxBackups is 0).  Any files
-// with an encoded timestamp older than MaxAge days are deleted, regardless of
-// MaxBackups.  Note that the time encoded in the timestamp is the rotation
-// time, which may differ from the last time that file was written to.
-//
-// If MaxBackups and MaxAge are both 0, no old log files will be deleted.
+func chown(_ string, _ os.FileInfo) error {
+	return nil
+}
+
 type Logger struct {
-	// Filename is the file to write logs to.  Backup log files will be retained
-	// in the same directory.  It uses <processname>-lumberjack.log in
-	// os.TempDir() if empty.
-	Filename string `json:"filename" yaml:"filename"`
-
-	// MaxSize is the maximum size in megabytes of the log file before it gets
-	// rotated. It defaults to 100 megabytes.
-	MaxSize int `json:"maxsize" yaml:"maxsize"`
-
-	// MaxAge is the maximum number of days to retain old log files based on the
-	// timestamp encoded in their filename.  Note that a day is defined as 24
-	// hours and may not exactly correspond to calendar days due to daylight
-	// savings, leap seconds, etc. The default is not to remove old log files
-	// based on age.
-	MaxAge int `json:"maxage" yaml:"maxage"`
-
-	// MaxBackups is the maximum number of old log files to retain.  The default
-	// is to retain all old log files (though MaxAge may still cause them to get
-	// deleted.)
-	MaxBackups int `json:"maxbackups" yaml:"maxbackups"`
-
-	// LocalTime determines if the time used for formatting the timestamps in
-	// backup files is the computer's local time.  The default is to use UTC
-	// time.
-	LocalTime bool `json:"localtime" yaml:"localtime"`
-
-	// Compress determines if the rotated log files should be compressed
-	// using gzip. The default is not to perform compression.
-	Compress bool `json:"compress" yaml:"compress"`
+	Filename   string `json:"filename" yaml:"filename"`     // 文件名
+	MaxSize    int    `json:"maxsize" yaml:"maxsize"`       // 最大容量（M）
+	MaxAge     int    `json:"maxage" yaml:"maxage"`         // 最大数量
+	MaxBackups int    `json:"maxbackups" yaml:"maxbackups"` // 最大备份数量
+	LocalTime  bool   `json:"localtime" yaml:"localtime"`   // 本地时间
+	Compress   bool   `json:"compress" yaml:"compress"`     // 是否压缩
 
 	size int64
 	file *os.File
@@ -95,22 +44,12 @@ type Logger struct {
 }
 
 var (
-	// currentTime exists so it can be mocked out by tests.
-	currentTime = time.Now
-
-	// os_Stat exists so it can be mocked out by tests.
-	os_Stat = os.Stat
-
-	// megabyte is the conversion factor between MaxSize and bytes.  It is a
-	// variable so tests can mock it out and not need to write megabytes of data
-	// to disk.
-	megabyte = 1024 * 1024
+	currentTime = time.Now // 当前时间
+	os_Stat     = os.Stat
+	megabyte    = 1024 * 1024 // M，MaxSize的单位
 )
 
-// Write implements io.Writer.  If a write would cause the log file to be larger
-// than MaxSize, the file is closed, renamed to include a timestamp of the
-// current time, and a new log file is created using the original log file name.
-// If the length of the write is greater than MaxSize, an error is returned.
+// Write 写入日志
 func (l *Logger) Write(p []byte) (n int, err error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -140,14 +79,14 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
-// Close implements io.Closer, and closes the current logfile.
+// Close 关闭
 func (l *Logger) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.close()
 }
 
-// close closes the file if it is open.
+// close 如果文件是打开的则关闭
 func (l *Logger) close() error {
 	if l.file == nil {
 		return nil
@@ -157,20 +96,14 @@ func (l *Logger) close() error {
 	return err
 }
 
-// Rotate causes Logger to close the existing log file and immediately create a
-// new one.  This is a helper function for applications that want to initiate
-// rotations outside of the normal rotation rules, such as in response to
-// SIGHUP.  After rotating, this initiates compression and removal of old log
-// files according to the configuration.
+// Rotate 备份日志
 func (l *Logger) Rotate() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.rotate()
 }
 
-// rotate closes the current file, moves it aside with a timestamp in the name,
-// (if it exists), opens a new file with the original filename, and then runs
-// post-rotation processing and removal.
+// rotate 备份日志
 func (l *Logger) rotate() error {
 	if err := l.close(); err != nil {
 		return err
@@ -182,8 +115,7 @@ func (l *Logger) rotate() error {
 	return nil
 }
 
-// openNew opens a new log file for writing, moving any old log file out of the
-// way.  This methods assumes the file has already been closed.
+// openNew 打开新的文件句柄
 func (l *Logger) openNew() error {
 	err := os.MkdirAll(l.dir(), 0744)
 	if err != nil {
@@ -221,9 +153,7 @@ func (l *Logger) openNew() error {
 	return nil
 }
 
-// backupName creates a new filename from the given name, inserting a timestamp
-// between the filename and the extension, using the local time if requested
-// (otherwise UTC).
+// backupName 备份名
 func backupName(name string, local bool) string {
 	dir := filepath.Dir(name)
 	filename := filepath.Base(name)
@@ -238,9 +168,7 @@ func backupName(name string, local bool) string {
 	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
 }
 
-// openExistingOrNew opens the logfile if it exists and if the current write
-// would not put it over MaxSize.  If there is no such file or the write would
-// put it over the MaxSize, a new file is created.
+// openExistingOrNew 打开已存在的或者创建新的
 func (l *Logger) openExistingOrNew(writeLen int) error {
 	l.mill()
 
