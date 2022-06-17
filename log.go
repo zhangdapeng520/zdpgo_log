@@ -1,8 +1,9 @@
 package zdpgo_log
 
 import (
-	"fmt"
 	"os"
+	"path"
+	"runtime"
 	"strings"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 
 // Log 日志核心对象
 type Log struct {
-	config *Config // 配置对象
+	Config *Config // 配置对象
 
 	// 日志方法
 	Debug   func(msg string, args ...interface{})
@@ -24,19 +25,69 @@ type Log struct {
 	Fatal   func(msg string, args ...interface{})
 }
 
+var (
+	Tmp *Log
+)
+
+func init() {
+	switch runtime.GOOS {
+	case "windows":
+		Tmp = NewWithDebug(true, "c:/tmp/log.log")
+	default:
+		Tmp = NewWithDebug(true, "/tmp/log.log")
+	}
+}
+
 // New 创建zap实例
 func New() *Log {
-	return NewWithConfig(Config{Debug: true, OpenJsonLog: true})
+	return NewWithConfig(&Config{Debug: true, OpenJsonLog: true})
 }
 
 // NewWithConfig 创建zap实例
-func NewWithConfig(config Config) *Log {
+func NewWithConfig(config *Config) *Log {
 	// 创建日志对象
-	z := Log{}
+	z := &Log{}
 
-	// 初始化配置
-	config = getDefaultConfig(config)
-	z.config = &config
+	// 日志路径
+	if config.LogFilePath == "" {
+		switch runtime.GOOS {
+		case "windows":
+			config.LogFilePath = "c:\\tmp\\log.log"
+		default:
+			config.LogFilePath = "/tmp/log.log"
+		}
+	}
+
+	// 提取目录名
+	dirName := path.Dir(config.LogFilePath)
+
+	// 创建日志文件夹
+	_ = createMultiDir(dirName)
+
+	// 日志级别
+	if config.LogLevel == "" {
+		if config.Debug {
+			config.LogLevel = "DEBUG"
+		} else {
+			config.LogLevel = "INFO"
+		}
+	}
+
+	// 日志文件大小：默认33M
+	if config.MaxSize == 0 {
+		config.MaxSize = 33
+	}
+
+	// 日志文件个数：默认33个
+	if config.MaxBackups == 0 {
+		config.MaxBackups = 33
+	}
+
+	// 日志文件存放天数：默认33天
+	if config.MaxAge == 0 {
+		config.MaxAge = 33
+	}
+	z.Config = config
 
 	// 日志级别
 	var logLevel zapcore.Level
@@ -56,8 +107,8 @@ func NewWithConfig(config Config) *Log {
 	}
 
 	// 创建日志
-	writeSyncer := getLogWriter(config)
-	encoder := getEncoder(config)
+	writeSyncer := getLogWriter(*config)
+	encoder := getEncoder(*config)
 	var core zapcore.Core
 
 	// DEBUG日志不要写入文件
@@ -104,12 +155,12 @@ func NewWithConfig(config Config) *Log {
 	z.Panic = sugarLogger.Panicw
 	z.Fatal = sugarLogger.Fatalw
 
-	return &z
+	return z
 }
 
 // NewWithDebug 根据debug值和日志路径创建日志对象
 func NewWithDebug(debug bool, logFilePath string) *Log {
-	logConfig := Config{
+	logConfig := &Config{
 		Debug:       debug,
 		OpenJsonLog: true,
 		LogFilePath: logFilePath,
@@ -126,7 +177,6 @@ func createMultiDir(filePath string) error {
 	if !isExist(filePath) {
 		err := os.MkdirAll(filePath, os.ModePerm)
 		if err != nil {
-			fmt.Println("创建文件夹失败,error info:", err)
 			return err
 		}
 		return err
