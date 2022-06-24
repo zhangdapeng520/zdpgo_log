@@ -1,6 +1,7 @@
 package zdpgo_log
 
 import (
+	"github.com/zhangdapeng520/zdpgo_log/colorable"
 	"os"
 	"path"
 	"runtime"
@@ -41,6 +42,32 @@ func init() {
 // New 创建zap实例
 func New() *Log {
 	return NewWithConfig(&Config{Debug: true, OpenJsonLog: true})
+}
+
+// GetDevLog 获取开发环境的日志
+func GetDevLog() *Log {
+	return NewWithConfig(&Config{
+		Debug:         true,
+		LogLevel:      "DEBUG",
+		IsWriteDebug:  false,
+		IsShowConsole: true,
+		OpenJsonLog:   false,
+		OpenFileName:  false,
+		LogFilePath:   "",
+	})
+}
+
+// GetProductLog 获取开发环境的日志
+func GetProductLog(logFilePath string) *Log {
+	return NewWithConfig(&Config{
+		Debug:         false,
+		LogLevel:      "INFO",
+		IsWriteDebug:  true,
+		IsShowConsole: false,
+		OpenJsonLog:   true,
+		OpenFileName:  false,
+		LogFilePath:   logFilePath,
+	})
 }
 
 // NewWithConfig 创建zap实例
@@ -120,14 +147,14 @@ func NewWithConfig(config *Config) *Log {
 
 	// 创建在控制台显示debug日志，但是不写入到文件中
 	if config.Debug && !config.IsWriteDebug {
-		core = zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel)
+		core = zapcore.NewCore(encoder, zapcore.AddSync(colorable.NewColorableStdout()), zapcore.DebugLevel)
 		debugSugarLogger = zap.New(core, zap.AddCaller()).Sugar()
 		z.Debug = debugSugarLogger.Debugw
 	}
 
 	// 是否在控制台展示日志
 	if config.IsShowConsole {
-		writerObj := zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout))
+		writerObj := zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(colorable.NewColorableStdout()))
 		core = zapcore.NewCore(encoder, writerObj, logLevel)
 	} else {
 		core = zapcore.NewCore(encoder, writeSyncer, logLevel)
@@ -162,7 +189,7 @@ func NewWithConfig(config *Config) *Log {
 func NewWithDebug(debug bool, logFilePath string) *Log {
 	logConfig := &Config{
 		Debug:       debug,
-		OpenJsonLog: true,
+		OpenJsonLog: false,
 		LogFilePath: logFilePath,
 	}
 	if debug {
@@ -217,8 +244,11 @@ func getEncoder(config Config) zapcore.Encoder {
 	if config.OpenJsonLog {
 		encoder = zapcore.NewJSONEncoder(encoderConfig)
 	} else {
+		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
 	}
+
+	// 返回
 	return encoder
 }
 

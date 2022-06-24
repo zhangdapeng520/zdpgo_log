@@ -23,7 +23,7 @@ func TestLog_Debug(t *testing.T) {
 	l = NewWithConfig(&Config{
 		Debug:         true,
 		IsWriteDebug:  true,
-		OpenJsonLog:   true,
+		OpenJsonLog:   false,
 		IsShowConsole: true,
 	})
 	l.Debug("debug 222222日志。。。")
@@ -32,7 +32,7 @@ func TestLog_Debug(t *testing.T) {
 	l = NewWithConfig(&Config{
 		Debug:         true,
 		IsWriteDebug:  true,
-		OpenJsonLog:   true,
+		OpenJsonLog:   false,
 		IsShowConsole: false,
 	})
 	l.Debug("debug 3333333日志。。。")
@@ -41,7 +41,7 @@ func TestLog_Debug(t *testing.T) {
 	l = NewWithConfig(&Config{
 		Debug:         true,
 		IsWriteDebug:  true,
-		OpenJsonLog:   true,
+		OpenJsonLog:   false,
 		IsShowConsole: true,
 		LogLevel:      "warning",
 	})
@@ -50,20 +50,46 @@ func TestLog_Debug(t *testing.T) {
 
 // 测试生产环境日志
 func TestLog_Product(t *testing.T) {
-	l := Tmp
-	l.Debug("日志。。。")
-	l.Info("日志。。。")
-	l.Warning("日志。。。")
-	l.Error("日志。。。")
+	l := NewWithConfig(&Config{
+		Debug:         true,
+		IsWriteDebug:  false,
+		IsShowConsole: true,
+		OpenJsonLog:   false,
+		LogFilePath:   "c:/tmp/log.log",
+	})
+	l.Debug("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Info("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Warning("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Error("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
 }
 
 // 测试json日志
 func TestLog_Json(t *testing.T) {
-	l := Tmp
-	l.Debug("日志。。。")
-	l.Info("日志。。。")
-	l.Warning("日志。。。")
-	l.Error("日志。。。")
+	// 普通日志
+	l := NewWithConfig(&Config{
+		Debug:         true,
+		IsWriteDebug:  false,
+		IsShowConsole: true,
+		OpenJsonLog:   false,
+		LogFilePath:   "log.log",
+	})
+	l.Debug("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Info("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Warning("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Error("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+
+	// json日志
+	l = NewWithConfig(&Config{
+		Debug:         true,
+		IsWriteDebug:  false,
+		IsShowConsole: true,
+		OpenJsonLog:   true,
+		LogFilePath:   "log.log",
+	})
+	l.Debug("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Info("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Warning("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
+	l.Error("日志。。。", "a", 1, "b", 2.2, "c", "333", "d", true)
 }
 
 // 测试备份
