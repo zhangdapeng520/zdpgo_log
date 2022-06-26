@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	_ "github.com/mattn/go-isatty"
+	_ "github.com/zhangdapeng520/zdpgo_log/isatty"
 )
 
 // NewColorable returns new instance of Writer which handles escape sequence.

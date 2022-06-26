@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/mattn/go-isatty"
+	"github.com/zhangdapeng520/zdpgo_log/isatty"
 )
 
 const (
