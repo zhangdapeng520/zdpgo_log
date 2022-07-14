@@ -1,21 +1,20 @@
 package zdpgo_log
 
 import (
-	"github.com/zhangdapeng520/zdpgo_log/colorable"
 	"os"
 	"path"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/zhangdapeng520/zdpgo_log/colorable"
+	"github.com/zhangdapeng520/zdpgo_log/core"
 	"github.com/zhangdapeng520/zdpgo_log/lumberjack"
-	"github.com/zhangdapeng520/zdpgo_log/zap"
-	"github.com/zhangdapeng520/zdpgo_log/zap/zapcore"
 )
 
 // Log 日志核心对象
 type Log struct {
-	Config *Config // 配置对象
+	Config *LogConfig // 配置对象
 
 	// 日志方法
 	Debug   func(msg string, args ...interface{})
@@ -40,13 +39,13 @@ func init() {
 }
 
 // New 创建zap实例
-func New() *Log {
-	return NewWithConfig(&Config{Debug: true, OpenJsonLog: true})
+func NewLog() *Log {
+	return NewWithConfig(&LogConfig{Debug: true, OpenJsonLog: true})
 }
 
 // GetDevLog 获取开发环境的日志
 func GetDevLog() *Log {
-	return NewWithConfig(&Config{
+	return NewWithConfig(&LogConfig{
 		Debug:         true,
 		LogLevel:      "DEBUG",
 		IsWriteDebug:  false,
@@ -59,7 +58,7 @@ func GetDevLog() *Log {
 
 // GetProductLog 获取开发环境的日志
 func GetProductLog(logFilePath string) *Log {
-	return NewWithConfig(&Config{
+	return NewWithConfig(&LogConfig{
 		Debug:         false,
 		LogLevel:      "INFO",
 		IsWriteDebug:  true,
@@ -71,7 +70,7 @@ func GetProductLog(logFilePath string) *Log {
 }
 
 // NewWithConfig 创建zap实例
-func NewWithConfig(config *Config) *Log {
+func NewWithConfig(config *LogConfig) *Log {
 	// 创建日志对象
 	z := &Log{}
 
@@ -117,51 +116,51 @@ func NewWithConfig(config *Config) *Log {
 	z.Config = config
 
 	// 日志级别
-	var logLevel zapcore.Level
+	var logLevel core.Level
 	switch strings.ToUpper(config.LogLevel) {
 	case "DEBUG":
-		logLevel = zap.DebugLevel
+		logLevel = DebugLevel
 	case "INFO":
-		logLevel = zap.InfoLevel
+		logLevel = InfoLevel
 	case "WARNING":
-		logLevel = zap.WarnLevel
+		logLevel = WarnLevel
 	case "ERROR":
-		logLevel = zap.ErrorLevel
+		logLevel = ErrorLevel
 	case "PANIC":
-		logLevel = zap.PanicLevel
+		logLevel = PanicLevel
 	default:
-		logLevel = zap.DebugLevel
+		logLevel = DebugLevel
 	}
 
 	// 创建日志
 	writeSyncer := getLogWriter(*config)
 	encoder := getEncoder(*config)
-	var core zapcore.Core
+	var ccore core.Core
 
 	// DEBUG日志不要写入文件
 	var (
-		logger           *zap.Logger
-		sugarLogger      *zap.SugaredLogger
-		debugSugarLogger *zap.SugaredLogger
+		logger           *Logger
+		sugarLogger      *SugaredLogger
+		debugSugarLogger *SugaredLogger
 	)
 
 	// 创建在控制台显示debug日志，但是不写入到文件中
 	if config.Debug && !config.IsWriteDebug {
-		core = zapcore.NewCore(encoder, zapcore.AddSync(colorable.NewColorableStdout()), zapcore.DebugLevel)
-		debugSugarLogger = zap.New(core, zap.AddCaller()).Sugar()
+		ccore = core.NewCore(encoder, core.AddSync(colorable.NewColorableStdout()), core.DebugLevel)
+		debugSugarLogger = New(ccore, AddCaller()).Sugar()
 		z.Debug = debugSugarLogger.Debugw
 	}
 
 	// 是否在控制台展示日志
 	if config.IsShowConsole {
-		writerObj := zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(colorable.NewColorableStdout()))
-		core = zapcore.NewCore(encoder, writerObj, logLevel)
+		writerObj := core.NewMultiWriteSyncer(writeSyncer, core.AddSync(colorable.NewColorableStdout()))
+		ccore = core.NewCore(encoder, writerObj, logLevel)
 	} else {
-		core = zapcore.NewCore(encoder, writeSyncer, logLevel)
+		ccore = core.NewCore(encoder, writeSyncer, logLevel)
 	}
 
 	// 创建日志对象
-	logger = zap.New(core, zap.AddCaller())
+	logger = New(ccore, AddCaller())
 	sugarLogger = logger.Sugar()
 	defer logger.Sync()
 	defer sugarLogger.Sync()
@@ -172,7 +171,7 @@ func NewWithConfig(config *Config) *Log {
 
 	// 输出文件名和行号
 	if config.OpenFileName {
-		logger.WithOptions(zap.AddCaller())
+		logger.WithOptions(AddCaller())
 	}
 
 	// 初始化日志方法
@@ -187,7 +186,7 @@ func NewWithConfig(config *Config) *Log {
 
 // NewWithDebug 根据debug值和日志路径创建日志对象
 func NewWithDebug(debug bool, logFilePath string) *Log {
-	logConfig := &Config{
+	logConfig := &LogConfig{
 		Debug:       debug,
 		OpenJsonLog: false,
 		LogFilePath: logFilePath,
@@ -218,34 +217,34 @@ func isExist(path string) bool {
 }
 
 // 获取日志编码器
-func getEncoder(config Config) zapcore.Encoder {
+func getEncoder(config LogConfig) core.Encoder {
 	// 配置对象
-	var encoderConfig zapcore.EncoderConfig
+	var encoderConfig core.EncoderConfig
 	if config.Debug {
-		encoderConfig = zap.NewDevelopmentEncoderConfig()
+		encoderConfig = NewDevelopmentEncoderConfig()
 	} else {
-		encoderConfig = zap.NewProductionEncoderConfig()
+		encoderConfig = NewProductionEncoderConfig()
 	}
 
 	// 指定时间格式
 	// 自定义时间输出格式
-	customTimeEncoder := func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	customTimeEncoder := func(t time.Time, enc core.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 	}
 	encoderConfig.EncodeTime = customTimeEncoder
 
 	//显示完整文件路径
 	if !config.Debug {
-		encoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+		encoderConfig.EncodeCaller = core.FullCallerEncoder
 	}
 
 	// 编码器
-	var encoder zapcore.Encoder
+	var encoder core.Encoder
 	if config.OpenJsonLog {
-		encoder = zapcore.NewJSONEncoder(encoderConfig)
+		encoder = core.NewJSONEncoder(encoderConfig)
 	} else {
-		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+		encoderConfig.EncodeLevel = core.CapitalColorLevelEncoder
+		encoder = core.NewConsoleEncoder(encoderConfig)
 	}
 
 	// 返回
@@ -253,7 +252,7 @@ func getEncoder(config Config) zapcore.Encoder {
 }
 
 // 获取日志写入对象
-func getLogWriter(config Config) zapcore.WriteSyncer {
+func getLogWriter(config LogConfig) core.WriteSyncer {
 	// 处理配置
 	config = getDefaultConfig(config)
 	lumberJackLogger := &lumberjack.Logger{
@@ -263,5 +262,5 @@ func getLogWriter(config Config) zapcore.WriteSyncer {
 		MaxAge:     int(config.MaxAge),     // 最多保留30个日志 和MaxBackups参数配置1个就可以
 		Compress:   config.Compress,        // 自动打 gzip包 默认false
 	}
-	return zapcore.AddSync(lumberJackLogger)
+	return core.AddSync(lumberJackLogger)
 }
